@@ -44,29 +44,22 @@ def coeficienteMenor(matriz, columnaPivote, ultimaColumna):
     return posicion
 
 def prepararFilaPivote(vector, divisor):
-    print(vector)
     for i in range(len(vector)):
         vector[i] = vector[i] * divisor
     return vector
 
 def iterarMatriz(matriz,filaPivote,columnaPivote):
-    print(matriz,'\n')
     for i in range(len(matriz)):
-        piv = matriz[i][columnaPivote]
+        multiplo = matriz[i][columnaPivote]
         for j in range(len(matriz[0])):
             if i != filaPivote:
-                multiplo = piv
-                print(matriz[i][j])
                 matriz[i][j] = matriz[i][j] + -multiplo * matriz[filaPivote][j]
-                print("A",matriz[i][j])
-    print(matriz)
     return matriz
 
 
 
-def metodoSimplex(matriz,optimizacion):
+def metodoSimplex(matriz,optimizacion,VB,VNB):
     ultimaColumna = len(matriz[0]) - 1
-    pivote = 0
     if optimizacion == "max":
         while comprobarMax(matriz[0]):
             columnaPivote = encontrarMenor(matriz[0])
@@ -74,6 +67,7 @@ def metodoSimplex(matriz,optimizacion):
             pivote = matriz[filaPivote][columnaPivote]
             matriz[filaPivote] = prepararFilaPivote(matriz[filaPivote], 1/pivote)
             matriz = iterarMatriz(matriz,filaPivote,columnaPivote)
+            VB[filaPivote] = VNB[columnaPivote]
 
     else:
         while comprobarMin(matriz[0]):
@@ -82,7 +76,8 @@ def metodoSimplex(matriz,optimizacion):
             pivote = matriz[filaPivote][columnaPivote]
             matriz[filaPivote] = prepararFilaPivote(matriz[filaPivote], 1/pivote)
             matriz = iterarMatriz(matriz,filaPivote,columnaPivote)
-
+    print(VB)
+    print(matriz)
 
 
 matriz = [[-3,-5,0,0,0,0],
@@ -90,4 +85,7 @@ matriz = [[-3,-5,0,0,0,0],
           [0,2,0,1,0,12],
           [3,2,0,0,1,18]]
 
-metodoSimplex(matriz,"max")
+a = ['U','X3','X4','X5']
+b = ['X1','X2','X3','X4','X5']
+
+metodoSimplex(matriz,"max",a,b)
