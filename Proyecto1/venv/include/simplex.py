@@ -1,137 +1,149 @@
-import sys
-from os import remove
+from metodo_simplex import metodoSimplex
 
-def comprobarMax(vector):
-    bandera = False
-    for valor in vector:
-        if valor < 0:
-            bandera = True
-    return bandera
 
-def encontrarMenor(vector):
-    menor = vector[0]
-    posicion = 0
-    for i in range(len(vector)):
-        if vector[i] < menor:
-            menor = vector[i]
-            posicion = i
-    return posicion
+def variables_restricciones(nombre_archivo):
+    archivo = open(nombre_archivo, "r")
+    cantidad_variables = 0
+    restriccion = int(archivo.readline().split(',')[2])
+    archivo.readline()
+    for linea in archivo.readlines():
+        tipo_restriccion = linea.split(',')[restriccion]
+        if tipo_restriccion == "<=" or tipo_restriccion == "=":
+            cantidad_variables += 1
+        else:
+            cantidad_variables += 2
+    archivo.close()
 
-def coeficienteMenor(matriz, columnaPivote, ultimaColumna):
-    fila = 1
-    menorCoeficiente = 10000000
-    posicion = 0
-    for fila in range(len(matriz)):
-        if matriz[fila][columnaPivote] > 0:
-            coeficiente = matriz[fila][ultimaColumna] / matriz[fila][columnaPivote]
-            if coeficiente < menorCoeficiente:
-                menorCoeficiente = coeficiente
-                posicion = fila
-    return posicion
+    return cantidad_variables
 
-def prepararFilaPivote(vector, divisor):
-    for i in range(len(vector)):
-        vector[i] = vector[i] * divisor
-    return vector
+def crear_matriz(descripcion, variables_agregar):
+    variables_decision = int(descripcion[2])
+    cant_restricciones = int(descripcion[3])
+    filas = cant_restricciones + 1
+    columnas = variables_agregar + variables_decision + 1
+    matriz = []
+    for i in range(filas):
+        matriz.append([0] * columnas)
 
-def iterarMatriz(matriz,filaPivote,columnaPivote):
-    for i in range(len(matriz)):
-        multiplo = matriz[i][columnaPivote]
-        for j in range(len(matriz[0])):
-            if i != filaPivote:
-                matriz[i][j] = matriz[i][j] + -multiplo * matriz[filaPivote][j]
     return matriz
 
-def metodoSimplex(matriz,VB,VNB):
-    ultimaColumna = len(matriz[0]) - 1
-    estado = 1
-    escribirTablas(matriz,VB,VNB,'Ninguno','Ninguno','Ninguno',0)
-    while comprobarMax(matriz[0]):
-        columnaPivote = encontrarMenor(matriz[0])
-        filaPivote = coeficienteMenor(matriz, columnaPivote, ultimaColumna)
-        pivote = matriz[filaPivote][columnaPivote]
-        matriz[filaPivote] = prepararFilaPivote(matriz[filaPivote], 1/pivote)
-        matriz = iterarMatriz(matriz,filaPivote,columnaPivote)
-        saliente = VB[filaPivote]
-        entrante = VNB[columnaPivote]
-        VB[filaPivote] = VNB[columnaPivote]
-        escribirTablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado)
-        estado += 1
-    escribirRespuestaFinal(obtenerResultado(matriz))
-    resultados = obtenerResultado(matriz)
-
-def obtenerResultado(matriz):
-    vector = []
-    tam = len(matriz)
-    tamFila = len(matriz[0])
-    for i in range(tam):
-        vector += [matriz[i][tamFila - 1]]
-    return vector
-
-def escribirRespuestaFinal(respuestas):
-    desgloce = ''
-    tam = len(respuestas)
-    f = open('_sol.txt', 'a')
-    f.write('\n Resultado Final: U = ' + str(respuestas[0]) + '\n')
-    i = 1
-    while i < tam:
-        if i == tam - 1:
-            desgloce += str(respuestas[i])
+def agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo):
+    tipo_optimizacion = descripcion[1]
+    variables_decision = int(descripcion[2])
+    for valor in range(variables_decision):
+        if tipo_optimizacion == "max":
+            matriz[0][valor] = -int(funcion_objetivo[valor])
         else:
-            desgloce += str(respuestas[i]) + ', '
-        i += 1
-    f.write('(' + desgloce + ')')
-    f.close()
-    return 0
+            matriz[0][valor] = int(funcion_objetivo[valor])
 
-def escribirTablas(matriz,VB,VNB,pivote,entrante,saliente,estado):
-    texto = ''
-    formatearDecimales(matriz)
-    VNB = [["VB"] + VNB]
-    matrizImprimible = []
-    i = 0
-    tam = len(matriz[0])
-    while i < len(matriz):
-        matrizImprimible += [[VB[i]] + matriz[i]]
-        i += 1
-    matrizImprimible = VNB + matrizImprimible
-    texto += '\n' + '-' * (tam * 17 + 4) + '\n'
-    for fila in range(len(matrizImprimible)):
-        for columna in range(len(matrizImprimible[0])):
-            texto += str(matrizImprimible[fila][columna]) +'     |     \t'
-        texto += '\n' + '-' * (tam * 17 + 4) + '\n'
-    f = open('_sol.txt','a')
-    f.write('\nEstado ' + str(estado) + '\n')
-    f.write(texto)
-    f.write('VB entrante: ' + str(entrante) + ', VB saliente: ' + str(saliente) + ' Numero Pivot: '+ str(pivote) + '\n')
-    f.close()
-    return 0
+    return matriz
 
-def formatearDecimales(matriz):
-    for fila in range(len(matriz)):
-        for columna in range(len(matriz[0])):
-            matriz[fila][columna] = round(matriz[fila][columna],1)
+def agregar_restricciones(archivo, matriz, descripcion):
+    variables_decision = int(descripcion[2])
+    fila = 1
+    columna_resultados = len(matriz[0]) - 1
+    variables_agregadas = 0
+    for restriccion in archivo.readlines():
+        datos_restriccion = restriccion[:-1].split(",")
+        for dato in range(variables_decision):
+            matriz[fila][dato] = int(datos_restriccion[dato])
+        if datos_restriccion[variables_decision] == "<=" or datos_restriccion[variables_decision] == "=":
+            matriz[fila][variables_decision + variables_agregadas] = 1
+            variables_agregadas += 1
+        else:
+            matriz[fila][variables_decision + variables_agregadas] = -1
+            matriz[fila][variables_decision + variables_agregadas + 1] = 1
+            variables_agregadas += 2
+        matriz[fila][columna_resultados] = int(datos_restriccion[variables_decision + 1])
+        fila += 1
 
-def leerArchivo(args):
-    return 0
+    return matriz
 
+def armar_matriz(nombre_archivo):
+    variables_agregar = variables_restricciones(nombre_archivo)
+    archivo = open(nombre_archivo, "r")
+    # El [:-1] es para quitar el salto de linea
+    descripcion = archivo.readline()[:-1].split(',')
+    funcion_objetivo = archivo.readline()[:-1].split(",")
+    matriz = crear_matriz(descripcion, variables_agregar)
+    matriz = agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo)
+    matriz = agregar_restricciones(archivo, matriz, descripcion)
+    metodo = int(descripcion[0])
+    archivo.close()
 
-matriz = [[-3,-5,0,0,0,0],[1,0,1,0,0,4],[0,2,0,1,0,12],[3,2,0,0,1,18]]
-VB = ['U','X3','X4','X5']
-VNB = ['X1','X2','X3','X4','X5','SOL']
-remove('_sol.txt')
-metodoSimplex(matriz,VB,VNB)
-"""if __name__ == "__main__":
-    tam = len(sys.argv)
-    if tam < 3:
-        print("Error al correr simplex.py, intente de nuevo colocando un archivo correctamente")
+    return (matriz, metodo)
 
-    else:
-        i = 2
-        while i < tam:
-            if ".txt" in sys.argv[i]:
-                sys.exit(leerArchivo(sys.argv[i]))
-            else:
-                print("El programa solo acepta .txt, intente ingresando otro archivo") """
+def basicas_iniciales(nombre_archivo):
+    VB = ["U"]
+    variables_holgura = 0
+    variables_artificiales = 0
+    archivo = open(nombre_archivo, "r")
+    variables_decision = int(archivo.readline().split(",")[2])
+    archivo.readline()
+    for restriccion in archivo.readlines():
+        tipo_restriccion = restriccion.split(",")[variables_decision]
+        if tipo_restriccion == "<=":
+            variables_holgura += 1
+            VB.append("R" + str(variables_holgura))
+        elif tipo_restriccion == "=":
+            variables_artificiales += 1
+            VB.append("S" + str(variables_artificiales))
+        else:
+            variables_artificiales += 1
+            variables_holgura += 1
+            VB.append("S" + str(variables_artificiales))
+        archivo.close()
 
+    return VB
 
+def no_basicas(nombre_archivo):
+    VNB = []
+    variables_holgura = 0
+    variables_artificiales = 0
+    archivo = open(nombre_archivo, "r")
+    variables_decision = int(archivo.readline().split(",")[2])
+    archivo.readline()
+    for i in range(1, variables_decision + 1):
+        VNB.append("X" + str(i))
+    for restriccion in archivo.readlines():
+        tipo_restriccion = restriccion.split(",")[variables_decision]
+        if tipo_restriccion == "<=":
+            variables_holgura += 1
+            VNB.append("R" + str(variables_holgura))
+        elif tipo_restriccion == "=":
+            variables_artificiales += 1
+            VNB.append("S" + str(variables_artificiales))
+        else:
+            variables_artificiales += 1
+            variables_holgura += 1
+            VNB.append("R" + str(variables_holgura))
+            VNB.append("S" + str(variables_artificiales))
+    VNB.append("SOL")
+    archivo.close()
+
+    return VNB
+
+def leer_archivo(nombre):
+    (matriz, metodo) = armar_matriz(nombre)
+    VB = basicas_iniciales(nombre)
+    VNB = no_basicas(nombre)
+    print(matriz)
+    print(VB)
+    print(VNB)
+
+    return (matriz, metodo, VB, VNB)
+
+def main(nombre_archivo):
+    (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
+    if metodo == 0:
+        metodoSimplex(matriz, VB, VNB)
+    #elif metodo == 1:
+        #granM(matriz, VB, VNB)
+    #elif metodo == 2:
+        #dos_fases(matriz, VB, VNB)
+    #elif metodo == 3:
+        #dual(matriz, VB, VNB)
+
+# remove('_sol.txt')
+# metodoSimplex(matriz,VB,VNB)
+main("problema1.txt")
