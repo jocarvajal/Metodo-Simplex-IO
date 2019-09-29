@@ -3,25 +3,24 @@ import sys
 
 def comprobarMax(vector):
     bandera = False
-    for valor in vector:
-        if valor < 0:
+    for valor in range(len(vector)-1):
+        if vector[valor] < 0:
             bandera = True
     return bandera
 
 def encontrarMenor(vector):
     menor = vector[0]
     posicion = 0
-    for i in range(len(vector)):
+    for i in range(len(vector)-1):
         if vector[i] < menor:
             menor = vector[i]
             posicion = i
     return posicion
 
 def coeficienteMenor(matriz, columnaPivote, ultimaColumna):
-    fila = 1
     menorCoeficiente = 10000000
     posicion = 0
-    for fila in range(len(matriz)):
+    for fila in range(1, len(matriz)):
         if matriz[fila][columnaPivote] > 0:
             coeficiente = matriz[fila][ultimaColumna] / matriz[fila][columnaPivote]
             if coeficiente < menorCoeficiente:
@@ -58,7 +57,7 @@ def metodoSimplex(matriz,VB,VNB):
         escribirTablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado)
         estado += 1
 
-    return (matriz, VB)
+    return (matriz, VB, VNB)
 
 def escribirTablas(matriz,VB,VNB,pivote,entrante,saliente,estado):
     texto = ''

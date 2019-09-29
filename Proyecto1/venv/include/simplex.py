@@ -1,4 +1,5 @@
 from metodo_simplex import metodoSimplex
+from  dosfases import dos_fases
 import os.path
 from os import remove
 
@@ -10,12 +11,16 @@ def validar_archivo(nombre):
 
     descripcion = archivo.readline()[:-1].split(",")
     if len(descripcion) != 4:
+        print("Datos faltantes en la primera fila")
         valido = False
-    elif descripcion[0].isdigit() is False or int(descripcion[0]) < 0 or int(descripcion[0]) > 3:
+    elif descripcion[0].isnumeric() is False or int(descripcion[0]) < 0 or int(descripcion[0]) > 3:
+        print("Metodo ingresado incorrecto")
         valido = False
     elif descripcion[1] != "min" and descripcion[1] != "max":
+        print("No se ingreso la palabra clave 'max' o 'min'")
         valido = False
     elif descripcion[2].isdigit() is False or descripcion[3].isdigit() is False:
+        print("No se ingreso una cantidad de variables y/o restricciones valido")
         valido = False
     else:
         cant_variables = int(descripcion[2])
@@ -23,21 +28,30 @@ def validar_archivo(nombre):
     if cant_variables != -1:
         funcion_objetivo = archivo.readline()[:-1].split(",")
         if len(funcion_objetivo) != cant_variables:
+            print("No se ingreso la cantidad de variables indicada para la funcion objetivo")
             valido = False
         for variable in funcion_objetivo:
-            if not variable.startswith("-") and variable.isdigit() is False:
+            try:
+                float(variable)
+            except:
+                print("Valor invalido: " + variable)
                 valido = False
 
         for restriccion in archivo.readlines():
             datos = restriccion[:-1].split(",")
             if len(datos) != (cant_variables + 2):
+                print("no se ingreso el numero correcto de variables en alguna restriccion")
                 valido = False
             elif datos[cant_variables] != ">=" and datos[cant_variables] != "=" and datos[cant_variables] != "<=":
+                print("La restriccion no tiene un condicion valida")
                 valido = False
             else:
                 datos.pop(cant_variables)
                 for valor in datos:
-                    if not valor.startswith("-") and valor.isdigit() is False:
+                    try:
+                        float(valor)
+                    except:
+                        print("Valor invalido en la restriccion: " + valor)
                         valido = False
 
     archivo.close()
@@ -74,9 +88,9 @@ def agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo):
     variables_decision = int(descripcion[2])
     for valor in range(variables_decision):
         if tipo_optimizacion == "max":
-            matriz[0][valor] = -int(funcion_objetivo[valor])
+            matriz[0][valor] = -float(funcion_objetivo[valor])
         else:
-            matriz[0][valor] = int(funcion_objetivo[valor])
+            matriz[0][valor] = float(funcion_objetivo[valor])
 
     return matriz
 
@@ -88,7 +102,7 @@ def agregar_restricciones(archivo, matriz, descripcion):
     for restriccion in archivo.readlines():
         datos_restriccion = restriccion[:-1].split(",")
         for dato in range(variables_decision):
-            matriz[fila][dato] = int(datos_restriccion[dato])
+            matriz[fila][dato] = float(datos_restriccion[dato])
         if datos_restriccion[variables_decision] == "<=" or datos_restriccion[variables_decision] == "=":
             matriz[fila][variables_decision + variables_agregadas] = 1
             variables_agregadas += 1
@@ -96,7 +110,7 @@ def agregar_restricciones(archivo, matriz, descripcion):
             matriz[fila][variables_decision + variables_agregadas] = -1
             matriz[fila][variables_decision + variables_agregadas + 1] = 1
             variables_agregadas += 2
-        matriz[fila][columna_resultados] = int(datos_restriccion[variables_decision + 1])
+        matriz[fila][columna_resultados] = float(datos_restriccion[variables_decision + 1])
         fila += 1
 
     return matriz
@@ -165,6 +179,14 @@ def no_basicas(nombre_archivo):
 
     return VNB
 
+'''Esta funcion leer un archivo valido y retorna una matriz con:
+    la primera fila tiene la funcion objetivo ya igualada a 0 y en max independientemente
+    si le entro min o max. 
+    Y el resto de fila son las restricciones con las variables de holgura(S) y artificiales(R)
+    Agregadas.
+    En caso de GranM o dos fases hay que agregar las Mr a la funcion objetivo.
+    Tambien retorna el metodo que se va a utilizar, las variables basicas iniciales y todas las variables
+    del problema'''
 def leer_archivo(nombre):
     (matriz, metodo) = armar_matriz(nombre)
     VB = basicas_iniciales(nombre)
@@ -178,7 +200,10 @@ def obtener_resultado(matriz, VB, VNB):
     columna_resultado = len(matriz[0])-1
     for valor in range(tam):
         if valor == 0:
-            resultados[0] = matriz[valor][columna_resultado]
+            if matriz[valor][columna_resultado] < 0:
+                resultados[0] = -matriz[valor][columna_resultado]
+            else:
+                resultados[0] = matriz[valor][columna_resultado]
         else:
             pos_resultado = VNB.index(VB[valor]) + 1
             resultados[pos_resultado] = matriz[valor][columna_resultado]
@@ -212,14 +237,16 @@ def main(nombre_archivo):
         print(VNB)
 
         if metodo == 0:
-            (matriz, VB) = metodoSimplex(matriz, VB, VNB)
+            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB)
             escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
-
         #elif metodo == 1:
             #granM(matriz, VB, VNB)
-        #elif metodo == 2:
-            #dos_fases(matriz, VB, VNB)
+        elif metodo == 2:
+            (matriz, VB, VNB) = dos_fases(matriz, VB, VNB)
+            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
         #elif metodo == 3:
             #dual(matriz, VB, VNB)
+    else:
+        print("Archivo incorrecto")
 
-main("problema1.txt")
+main("problema2.txt")
