@@ -1,5 +1,47 @@
 from metodo_simplex import metodoSimplex
+import os.path
+from os import remove
 
+def validar_archivo(nombre):
+    valido = True
+    cant_variables = -1
+
+    archivo = open(nombre, "r")
+
+    descripcion = archivo.readline()[:-1].split(",")
+    if len(descripcion) != 4:
+        valido = False
+    elif descripcion[0].isdigit() is False or int(descripcion[0]) < 0 or int(descripcion[0]) > 3:
+        valido = False
+    elif descripcion[1] != "min" and descripcion[1] != "max":
+        valido = False
+    elif descripcion[2].isdigit() is False or descripcion[3].isdigit() is False:
+        valido = False
+    else:
+        cant_variables = int(descripcion[2])
+
+    if cant_variables != -1:
+        funcion_objetivo = archivo.readline()[:-1].split(",")
+        if len(funcion_objetivo) != cant_variables:
+            valido = False
+        for variable in funcion_objetivo:
+            if not variable.startswith("-") and variable.isdigit() is False:
+                valido = False
+
+        for restriccion in archivo.readlines():
+            datos = restriccion[:-1].split(",")
+            if len(datos) != (cant_variables + 2):
+                valido = False
+            elif datos[cant_variables] != ">=" and datos[cant_variables] != "=" and datos[cant_variables] != "<=":
+                valido = False
+            else:
+                datos.pop(cant_variables)
+                for valor in datos:
+                    if not valor.startswith("-") and valor.isdigit() is False:
+                        valido = False
+
+    archivo.close()
+    return valido
 
 def variables_restricciones(nombre_archivo):
     archivo = open(nombre_archivo, "r")
@@ -84,14 +126,14 @@ def basicas_iniciales(nombre_archivo):
         tipo_restriccion = restriccion.split(",")[variables_decision]
         if tipo_restriccion == "<=":
             variables_holgura += 1
-            VB.append("R" + str(variables_holgura))
+            VB.append("S" + str(variables_holgura))
         elif tipo_restriccion == "=":
             variables_artificiales += 1
-            VB.append("S" + str(variables_artificiales))
+            VB.append("R" + str(variables_artificiales))
         else:
             variables_artificiales += 1
             variables_holgura += 1
-            VB.append("S" + str(variables_artificiales))
+            VB.append("R" + str(variables_artificiales))
         archivo.close()
 
     return VB
@@ -109,15 +151,15 @@ def no_basicas(nombre_archivo):
         tipo_restriccion = restriccion.split(",")[variables_decision]
         if tipo_restriccion == "<=":
             variables_holgura += 1
-            VNB.append("R" + str(variables_holgura))
+            VNB.append("S" + str(variables_holgura))
         elif tipo_restriccion == "=":
             variables_artificiales += 1
-            VNB.append("S" + str(variables_artificiales))
+            VNB.append("R" + str(variables_artificiales))
         else:
             variables_artificiales += 1
             variables_holgura += 1
-            VNB.append("R" + str(variables_holgura))
-            VNB.append("S" + str(variables_artificiales))
+            VNB.append("S" + str(variables_holgura))
+            VNB.append("R" + str(variables_artificiales))
     VNB.append("SOL")
     archivo.close()
 
@@ -127,23 +169,57 @@ def leer_archivo(nombre):
     (matriz, metodo) = armar_matriz(nombre)
     VB = basicas_iniciales(nombre)
     VNB = no_basicas(nombre)
-    print(matriz)
-    print(VB)
-    print(VNB)
 
     return (matriz, metodo, VB, VNB)
 
-def main(nombre_archivo):
-    (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
-    if metodo == 0:
-        metodoSimplex(matriz, VB, VNB)
-    #elif metodo == 1:
-        #granM(matriz, VB, VNB)
-    #elif metodo == 2:
-        #dos_fases(matriz, VB, VNB)
-    #elif metodo == 3:
-        #dual(matriz, VB, VNB)
+def obtener_resultado(matriz, VB, VNB):
+    resultados = [0]*(len(VNB)+1)
+    tam = len(matriz)
+    columna_resultado = len(matriz[0])-1
+    for valor in range(tam):
+        if valor == 0:
+            resultados[0] = matriz[valor][columna_resultado]
+        else:
+            pos_resultado = VNB.index(VB[valor]) + 1
+            resultados[pos_resultado] = matriz[valor][columna_resultado]
 
-# remove('_sol.txt')
-# metodoSimplex(matriz,VB,VNB)
+    return resultados
+
+def escribir_respuesta_final(respuestas):
+    desgloce = ''
+    tam = len(respuestas)
+    f = open('_sol.txt', 'a')
+    f.write('\n Resultado Final: U = ' + str(respuestas[0]) + '\n')
+    i = 1
+    while i < tam:
+        if i == tam - 1:
+            desgloce += str(respuestas[i])
+        else:
+            desgloce += str(respuestas[i]) + ', '
+        i += 1
+    f.write('BF(' + desgloce + ')')
+    f.close()
+    return 0
+
+def main(nombre_archivo):
+
+    if os.path.isfile("_sol.txt"):
+        remove('_sol.txt')
+    if validar_archivo(nombre_archivo):
+        (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
+        print(matriz)
+        print(VB)
+        print(VNB)
+
+        if metodo == 0:
+            (matriz, VB) = metodoSimplex(matriz, VB, VNB)
+            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
+
+        #elif metodo == 1:
+            #granM(matriz, VB, VNB)
+        #elif metodo == 2:
+            #dos_fases(matriz, VB, VNB)
+        #elif metodo == 3:
+            #dual(matriz, VB, VNB)
+
 main("problema1.txt")

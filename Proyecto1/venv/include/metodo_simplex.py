@@ -1,5 +1,5 @@
 import sys
-from os import remove
+
 
 def comprobarMax(vector):
     bandera = False
@@ -57,32 +57,8 @@ def metodoSimplex(matriz,VB,VNB):
         VB[filaPivote] = VNB[columnaPivote]
         escribirTablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado)
         estado += 1
-    escribirRespuestaFinal(obtenerResultado(matriz))
-    resultados = obtenerResultado(matriz)
 
-def obtenerResultado(matriz):
-    vector = []
-    tam = len(matriz)
-    tamFila = len(matriz[0])
-    for i in range(tam):
-        vector += [matriz[i][tamFila - 1]]
-    return vector
-
-def escribirRespuestaFinal(respuestas):
-    desgloce = ''
-    tam = len(respuestas)
-    f = open('_sol.txt', 'a')
-    f.write('\n Resultado Final: U = ' + str(respuestas[0]) + '\n')
-    i = 1
-    while i < tam:
-        if i == tam - 1:
-            desgloce += str(respuestas[i])
-        else:
-            desgloce += str(respuestas[i]) + ', '
-        i += 1
-    f.write('(' + desgloce + ')')
-    f.close()
-    return 0
+    return (matriz, VB)
 
 def escribirTablas(matriz,VB,VNB,pivote,entrante,saliente,estado):
     texto = ''
@@ -105,7 +81,6 @@ def escribirTablas(matriz,VB,VNB,pivote,entrante,saliente,estado):
     f.write(texto)
     f.write('VB entrante: ' + str(entrante) + ', VB saliente: ' + str(saliente) + ' Numero Pivot: '+ str(pivote) + '\n')
     f.close()
-    return 0
 
 def formatearDecimales(matriz):
     for fila in range(len(matriz)):
