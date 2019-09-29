@@ -236,7 +236,7 @@ def main(nombre_archivo):
         print(VNB)
 
         if metodo == 0:
-            (matriz, VB, VNB) = metodo_simplex(matriz, VB, VNB)
+            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB)
             escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
         #elif metodo == 1:
             #granM(matriz, VB, VNB)

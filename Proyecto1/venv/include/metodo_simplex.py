@@ -96,13 +96,30 @@ Funcion que verifica si hay soluciones multiples
 E : Fila con los valores de la funcion objetivo y un vector con las varaibles no basicas 
 S : Devuelve True si una de las vaiables artificiales presenta un valor de 0 al final del proceso 
 """
-def comprobar_multiples(vector,VNB):
+def comprobar_multiples(vector, VB, VNB):
     tiene_multiple = False
-    for valor in range(len(vector)):
-        if "R" in VNB[valor] and valor == 0:
-            tiene_multiple = True
-            print("Presenta repsuesta multiple\n")
+    for basica in VB:
+        for valor in range(len(vector)):
+            if basica != VNB[valor] and vector[valor] == 0 and VNB[valor] != "SOL" :
+                tiene_multiple = True
+                print("Presenta respuesta multiple\n")
+                break
     return tiene_multiple
+
+def conseguir_multiple(matriz,VB,VNB):
+    columna_pivote = 0
+    for basica in VB:
+        for valor in range(len(matriz[0])):
+            if basica != VNB[valor] and matriz[0][valor] == 0 and VNB[valor] != "SOL":
+                columna_pivote = valor
+    fila_pivote = cociente_menor(matriz, columna_pivote, len(matriz[0]) - 1)
+    pivote = matriz[fila_pivote][columna_pivote]
+    matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1 / pivote)
+    matriz = iterar_matriz(matriz, fila_pivote, columna_pivote)
+    saliente = VB[fila_pivote]
+    entrante = VNB[columna_pivote]
+    VB[fila_pivote] = VNB[columna_pivote]
+    escribir_tablas(matriz[:], VB[:], VNB[:], pivote, entrante, saliente, "Extra")
 
 
 """ 
@@ -114,7 +131,7 @@ def metodoSimplex(matriz,VB,VNB):
     ultima_columna = len(matriz[0]) - 1
     estado = 1
     escribir_tablas(matriz,VB,VNB,'Ninguno','Ninguno','Ninguno',0)
-    while comprobar_max(matriz[0]) or comprobar_multiples(matriz[0],VNB) :
+    while comprobar_max(matriz[0]):
         columna_pivote = encontrar_menor(matriz[0])
         fila_pivote = cociente_menor(matriz, columna_pivote, ultima_columna)
         if comprobar_no_acotado(fila_pivote):
@@ -128,7 +145,8 @@ def metodoSimplex(matriz,VB,VNB):
         VB[fila_pivote] = VNB[columna_pivote]
         escribir_tablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado)
         estado += 1
-
+    if comprobar_multiples(matriz[0], VB, VNB):
+        conseguir_multiple(matriz, VB, VNB)
     return (matriz, VB, VNB)
 
 """ 
