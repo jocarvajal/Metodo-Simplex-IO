@@ -1,5 +1,5 @@
 from metodo_simplex import metodoSimplex
-from  dosfases import dos_fases
+from dosfases import  dos_fases
 import os.path
 from os import remove
 
@@ -213,8 +213,8 @@ def obtener_resultado(matriz, VB, VNB):
 def escribir_respuesta_final(respuestas):
     desgloce = ''
     tam = len(respuestas)
-    f = open('_sol.txt', 'a')
-    f.write('\n Resultado Final: U = ' + str(respuestas[0]) + '\n')
+
+    print('\n Resultado Final: U = ' + str(respuestas[0]) + '\n')
     i = 1
     while i < tam:
         if i == tam - 1:
@@ -222,8 +222,7 @@ def escribir_respuesta_final(respuestas):
         else:
             desgloce += str(respuestas[i]) + ', '
         i += 1
-    f.write('BF(' + desgloce + ')')
-    f.close()
+    print('BF = (' + desgloce + ')')
     return 0
 
 def main(nombre_archivo):
@@ -237,7 +236,7 @@ def main(nombre_archivo):
         print(VNB)
 
         if metodo == 0:
-            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB)
+            (matriz, VB, VNB) = metodo_simplex(matriz, VB, VNB)
             escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
         #elif metodo == 1:
             #granM(matriz, VB, VNB)
