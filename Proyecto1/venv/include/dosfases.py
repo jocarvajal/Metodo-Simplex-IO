@@ -1,6 +1,5 @@
 from metodo_simplex import metodoSimplex
 
-
 def primera_fase(matriz, VB, VNB):
     filas_restar = []
 
