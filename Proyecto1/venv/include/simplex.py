@@ -3,7 +3,7 @@ from metodo_gran_m import gran_m
 from dosfases import dos_fases
 from metodo_dual import dual
 import os.path
-import sys
+import argparse
 from os import remove
 
 
@@ -249,6 +249,7 @@ def escribir_respuesta_final(respuestas,nombre_archivo):
 
 
 def main(nombre_archivo):
+    
     if os.path.isfile(nombre_archivo.split(".")[0] + "_sol.txt"):
         remove(nombre_archivo.split(".")[0] + '_sol.txt')
     if validar_archivo(nombre_archivo):
@@ -283,16 +284,15 @@ def main(nombre_archivo):
 
 
 if __name__ == "__main__":
-
-    tam = len(sys.argv)
-    if tam < 2:
-        print("Error al correr simplex.py, intente de nuevo colocando un archivo correctamente")
-
-    else:
-        i = 1
-        while i < tam:
-            if ".txt" in sys.argv[i]:
-                main(sys.argv[i])
-            else:
-                print("El programa solo acepta .txt, intente ingresando otro archivo")
-            i += 1
+    
+    parser = argparse.ArgumentParser(description = 'Corra el archivo simplex.py seguido de los archivos que tienen los problemas a resolver en formato txt')
+    parser.add_argument("archivos", metavar="archivo.txt", help = "Uno o más archivos a ejecutar", nargs = '+')
+    args = parser.parse_args()
+    tam = len(args.archivos)
+  
+    for archivo in args.archivos:
+        if ".txt" in archivo:
+            main(archivo)
+        else:
+            print("El programa solo acepta .txt, intente ingresando otro archivo")
+    
