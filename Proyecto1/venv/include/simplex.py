@@ -246,7 +246,7 @@ def main(nombre_archivo):
             #dual(matriz, VB, VNB)
 
         # Esta condicion es para verificar si es no acotada
-        if (matriz != 0):
+        if (matriz != 0 and matriz != None):
             (columna_pivote, soluciones_multiples) = comprobar_multiples(matriz[0], VB, VNB)
             if (soluciones_multiples):
                 (matriz, VB, VNB) = conseguir_multiple(matriz, VB, VNB, columna_pivote)
@@ -256,4 +256,4 @@ def main(nombre_archivo):
     else:
         print("Archivo incorrecto")
 
-#main("problema1.txt")
+main("problema1.txt")

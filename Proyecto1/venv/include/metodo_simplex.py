@@ -34,6 +34,9 @@ S : None
 def es_degenerada(cocientes,menor_cociente):
     if (cocientes.count(menor_cociente) > 1):
         print("Presenta una solucion degenerada\n")
+        f = open('_sol.txt', 'a')
+        f.write('\n' + "Problema cuenta con solucion degenerada" + '\n')
+        f.close()
 
 """ 
 Funcion que busca el menor cociente para usarlo como fila pivote

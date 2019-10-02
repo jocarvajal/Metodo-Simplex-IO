@@ -76,12 +76,26 @@ def buscar_filas(matriz, campos):
             filas.append(-1)
     return filas
 
+def comprobar_primera_face(VB):
+    tiene_solucion = True
+    for variable in VB:
+        if variable[0] == 'R':
+            tiene_solucion = False
+    return tiene_solucion
+
 def dos_fases(matriz, VB, VNB):
     matriz_primera_fase = primera_fase(matriz[:], VB, VNB)
     (matriz_primera_fase, VB, VNB) = metodoSimplex(matriz_primera_fase, VB, VNB)
     # Salio no acotada
     if (matriz_primera_fase == 0):
         return (0,0,0)
+    elif( not comprobar_primera_face(VB)):
+        print("Variables artificiales resultantes de la primera fase.")
+        print("El ejercicio no cuenta con solucion optima.")
+        f = open('_sol.txt', 'a')
+        f.write('\n' + "No se puede pasar a segunda fase." + '\n')
+        f.close()
+        return (None, None, None)
     f = open('_sol.txt', 'a')
     f.write('\n' + "Segunda Fase" + '\n')
     f.close()
