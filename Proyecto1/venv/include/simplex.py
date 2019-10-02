@@ -1,6 +1,7 @@
 from metodo_simplex import metodoSimplex, comprobar_multiples, conseguir_multiple
 from metodo_gran_m import gran_m
 from dosfases import dos_fases
+from metodo_dual import dual
 import os.path
 import sys
 from os import remove
@@ -137,6 +138,12 @@ def armar_matriz(nombre_archivo):
 
     return (matriz, metodo)
 
+def averiguar_metodo(nombre_archivo):
+    archivo = open(nombre_archivo, "r")
+    descripcion = archivo.readline()[:-1].split(',')
+    metodo = int(descripcion[0])
+    archivo.close()
+    return metodo
 
 def basicas_iniciales(nombre_archivo):
     VB = ["U"]
@@ -245,6 +252,11 @@ def main(nombre_archivo):
     if os.path.isfile(nombre_archivo.split(".")[0] + "_sol.txt"):
         remove(nombre_archivo.split(".")[0] + '_sol.txt')
     if validar_archivo(nombre_archivo):
+        metodo = averiguar_metodo(nombre_archivo)
+        if metodo == 3:
+            nombre_archivo = dual(nombre_archivo)
+            #(matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo_dual)
+
         (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
         """print(matriz)
         print(VB)
@@ -256,8 +268,6 @@ def main(nombre_archivo):
             (matriz, VB, VNB) = gran_m(matriz, VB, VNB, nombre_archivo.split(".")[0])
         elif metodo == 2:
             (matriz, VB, VNB) = dos_fases(matriz, VB, VNB, nombre_archivo.split(".")[0])
-        # elif metodo == 3:
-        # dual(matriz, VB, VNB)
 
         # Esta condicion es para verificar si es no acotada
         if (matriz != 0 and matriz != None):
