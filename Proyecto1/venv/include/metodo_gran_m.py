@@ -6,14 +6,14 @@ y llama a colocar las M y luego a eliminarlas de la funcion objetivo
 E: Matriz con los valores, vector con las variables basicas y vector con las no basicas
 S: Retorna los variables de entrada ya iteradas y con la solucion final (si existe)
 """
-def gran_m(matriz, variables_basicas, variables_no_basicas):
+def gran_m(matriz, variables_basicas, variables_no_basicas, nombre_archivo):
    posiciones_r = [i for i,variable in enumerate(variables_basicas) if variable[0] == 'R']
 
    matriz = colocar_m(matriz, posiciones_r, variables_basicas, variables_no_basicas)
 
    matriz = eliminar_m(matriz, posiciones_r)
 
-   return metodoSimplex(matriz, variables_basicas, variables_no_basicas)
+   return metodoSimplex(matriz, variables_basicas, variables_no_basicas, nombre_archivo)
 
 """
 Funcion que coloca las M en la funcion objetivo

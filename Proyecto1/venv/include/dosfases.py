@@ -83,23 +83,23 @@ def comprobar_primera_face(VB):
             tiene_solucion = False
     return tiene_solucion
 
-def dos_fases(matriz, VB, VNB):
+def dos_fases(matriz, VB, VNB, nombre_archivo):
     matriz_primera_fase = primera_fase(matriz[:], VB, VNB)
-    (matriz_primera_fase, VB, VNB) = metodoSimplex(matriz_primera_fase, VB, VNB)
+    (matriz_primera_fase, VB, VNB) = metodoSimplex(matriz_primera_fase, VB, VNB, nombre_archivo)
     # Salio no acotada
     if (matriz_primera_fase == 0):
         return (0,0,0)
     elif( not comprobar_primera_face(VB)):
         print("Variables artificiales resultantes de la primera fase.")
         print("El ejercicio no cuenta con solucion optima.")
-        f = open('_sol.txt', 'a')
+        f = open(nombre_archivo + '_sol.txt', 'a')
         f.write('\n' + "No se puede pasar a segunda fase." + '\n')
         f.close()
         return (None, None, None)
-    f = open('_sol.txt', 'a')
+    f = open(nombre_archivo + '_sol.txt', 'a')
     f.write('\n' + "Segunda Fase" + '\n')
     f.close()
     (matriz_segunda_fase, nuevo_VNB) = segunda_fase(matriz[:], matriz_primera_fase, VB, VNB[:])
-    (matriz_segunda_fase, VB, nuevo_VNB) = metodoSimplex(matriz_segunda_fase, VB, nuevo_VNB)
+    (matriz_segunda_fase, VB, nuevo_VNB) = metodoSimplex(matriz_segunda_fase, VB, nuevo_VNB,nombre_archivo)
 
     return (matriz_segunda_fase, VB, nuevo_VNB)

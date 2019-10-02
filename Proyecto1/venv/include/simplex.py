@@ -1,8 +1,10 @@
 from metodo_simplex import metodoSimplex, comprobar_multiples, conseguir_multiple
 from metodo_gran_m import gran_m
-from dosfases import  dos_fases
+from dosfases import dos_fases
 import os.path
+import sys
 from os import remove
+
 
 def validar_archivo(nombre):
     valido = True
@@ -58,6 +60,7 @@ def validar_archivo(nombre):
     archivo.close()
     return valido
 
+
 def variables_restricciones(nombre_archivo):
     archivo = open(nombre_archivo, "r")
     cantidad_variables = 0
@@ -73,6 +76,7 @@ def variables_restricciones(nombre_archivo):
 
     return cantidad_variables
 
+
 def crear_matriz(descripcion, variables_agregar):
     variables_decision = int(descripcion[2])
     cant_restricciones = int(descripcion[3])
@@ -84,6 +88,7 @@ def crear_matriz(descripcion, variables_agregar):
 
     return matriz
 
+
 def agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo):
     tipo_optimizacion = descripcion[1]
     variables_decision = int(descripcion[2])
@@ -94,6 +99,7 @@ def agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo):
             matriz[0][valor] = float(funcion_objetivo[valor])
 
     return matriz
+
 
 def agregar_restricciones(archivo, matriz, descripcion):
     variables_decision = int(descripcion[2])
@@ -116,6 +122,7 @@ def agregar_restricciones(archivo, matriz, descripcion):
 
     return matriz
 
+
 def armar_matriz(nombre_archivo):
     variables_agregar = variables_restricciones(nombre_archivo)
     archivo = open(nombre_archivo, "r")
@@ -129,6 +136,7 @@ def armar_matriz(nombre_archivo):
     archivo.close()
 
     return (matriz, metodo)
+
 
 def basicas_iniciales(nombre_archivo):
     VB = ["U"]
@@ -152,6 +160,7 @@ def basicas_iniciales(nombre_archivo):
         archivo.close()
 
     return VB
+
 
 def no_basicas(nombre_archivo):
     VNB = []
@@ -180,6 +189,7 @@ def no_basicas(nombre_archivo):
 
     return VNB
 
+
 '''Esta funcion leer un archivo valido y retorna una matriz con:
     la primera fila tiene la funcion objetivo ya igualada a 0 y en max independientemente
     si le entro min o max. 
@@ -188,6 +198,8 @@ def no_basicas(nombre_archivo):
     En caso de GranM o dos fases hay que agregar las Mr a la funcion objetivo.
     Tambien retorna el metodo que se va a utilizar, las variables basicas iniciales y todas las variables
     del problema'''
+
+
 def leer_archivo(nombre):
     (matriz, metodo) = armar_matriz(nombre)
     VB = basicas_iniciales(nombre)
@@ -195,10 +207,11 @@ def leer_archivo(nombre):
 
     return (matriz, metodo, VB, VNB)
 
+
 def obtener_resultado(matriz, VB, VNB):
-    resultados = [0]*(len(VNB)+1)
+    resultados = [0] * (len(VNB) + 1)
     tam = len(matriz)
-    columna_resultado = len(matriz[0])-1
+    columna_resultado = len(matriz[0]) - 1
     for valor in range(tam):
         if valor == 0:
             if matriz[valor][columna_resultado] < 0:
@@ -211,11 +224,12 @@ def obtener_resultado(matriz, VB, VNB):
 
     return resultados
 
-def escribir_respuesta_final(respuestas):
+
+def escribir_respuesta_final(respuestas,nombre_archivo):
     desgloce = ''
     tam = len(respuestas)
 
-    print('\n Resultado Final: U = ' + str(respuestas[0]) + '\n')
+    print('\n Resultado Final ' + nombre_archivo + ': U = ' + str(respuestas[0]) + '\n')
     i = 1
     while i < tam:
         if i == tam - 1:
@@ -226,34 +240,49 @@ def escribir_respuesta_final(respuestas):
     print('BF = (' + desgloce + ')')
     return 0
 
-def main(nombre_archivo):
 
-    if os.path.isfile("_sol.txt"):
-        remove('_sol.txt')
+def main(nombre_archivo):
+    if os.path.isfile(nombre_archivo.split(".")[0] + "_sol.txt"):
+        remove(nombre_archivo.split(".")[0] + '_sol.txt')
     if validar_archivo(nombre_archivo):
         (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
-        print(matriz)
+        """print(matriz)
         print(VB)
-        print(VNB)
+        print(VNB)"""
 
         if metodo == 0:
-            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB)
+            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB, nombre_archivo.split(".")[0])
         elif metodo == 1:
-            (matriz, VB, VNB) = gran_m(matriz, VB, VNB)
+            (matriz, VB, VNB) = gran_m(matriz, VB, VNB, nombre_archivo.split(".")[0])
         elif metodo == 2:
-            (matriz, VB, VNB) = dos_fases(matriz, VB, VNB)
-        #elif metodo == 3:
-            #dual(matriz, VB, VNB)
+            (matriz, VB, VNB) = dos_fases(matriz, VB, VNB, nombre_archivo.split(".")[0])
+        # elif metodo == 3:
+        # dual(matriz, VB, VNB)
 
         # Esta condicion es para verificar si es no acotada
         if (matriz != 0 and matriz != None):
-            (columna_pivote, soluciones_multiples) = comprobar_multiples(matriz[0], VB, VNB)
+            (columna_pivote, soluciones_multiples) = comprobar_multiples(matriz[0], VB, VNB,
+                                                                         nombre_archivo.split(".")[0])
             if (soluciones_multiples):
-                (matriz, VB, VNB) = conseguir_multiple(matriz, VB, VNB, columna_pivote)
+                (matriz, VB, VNB) = conseguir_multiple(matriz, VB, VNB, columna_pivote, nombre_archivo.split(".")[0])
 
-            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
+            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB), nombre_archivo.split(".")[0])
 
     else:
-        print("Archivo incorrecto")
+        print("Archivo " + nombre_archivo + " incorrecto")
 
-main("problema1.txt")
+
+if __name__ == "__main__":
+
+    tam = len(sys.argv)
+    if tam < 2:
+        print("Error al correr simplex.py, intente de nuevo colocando un archivo correctamente")
+
+    else:
+        i = 1
+        while i < tam:
+            if ".txt" in sys.argv[i]:
+                main(sys.argv[i])
+            else:
+                print("El programa solo acepta .txt, intente ingresando otro archivo")
+            i += 1

@@ -31,10 +31,10 @@ Funcion que localiza si hay dos cocientes iguales, haciendo mencion que es una s
 E : lista de cocientes, el menor cociente
 S : None
 """
-def es_degenerada(cocientes,menor_cociente):
+def es_degenerada(cocientes,menor_cociente,nombre_archivo):
     if (cocientes.count(menor_cociente) > 1):
-        print("Presenta una solucion degenerada\n")
-        f = open('_sol.txt', 'a')
+        print("Presenta una solucion degenerada en " + nombre_archivo + "\n")
+        f = open(nombre_archivo + '_sol.txt', 'a')
         f.write('\n' + "Problema cuenta con solucion degenerada" + '\n')
         f.close()
 
@@ -44,7 +44,7 @@ retorna -1 si la funcion es no acotada
 E : Matriz con los valores a iterar,posicion de la columna pivote, posicion de la columna solucion
 S : Posicion de la fila pivote 
 """
-def cociente_menor(matriz, columna_pivote, ultima_columna):
+def cociente_menor(matriz, columna_pivote, ultima_columna,nombre_archivo):
     menor_cociente = 10000000
     posicion = -1
     cocientes = []
@@ -57,7 +57,7 @@ def cociente_menor(matriz, columna_pivote, ultima_columna):
                 posicion = fila
             cocientes.append(cociente)
 
-    es_degenerada(cocientes,menor_cociente)
+    es_degenerada(cocientes,menor_cociente,nombre_archivo)
 
     return posicion
 
@@ -90,7 +90,7 @@ Funcion que verifica si hay soluciones multiples
 E : Fila con los valores de la funcion objetivo y un vector con las varaibles no basicas 
 S : Devuelve True si una de las vaiables artificiales presenta un valor de 0 al final del proceso 
 """
-def comprobar_multiples(vector, VB, VNB):
+def comprobar_multiples(vector, VB, VNB,nombre_archivo):
     tiene_multiple = False
     columna = -1
 
@@ -100,12 +100,12 @@ def comprobar_multiples(vector, VB, VNB):
         if (VNB[posicion][0] == 'X' and VNB[posicion] not in VB):
             tiene_multiple = True
             columna = posicion
-            print("Presenta respuesta multiple\n")
+            print("Presenta respuesta multiple en" + nombre_archivo + "\n")
             break
 
     return (columna, tiene_multiple)
 
-def conseguir_multiple(matriz,VB,VNB,columna_pivote):
+def conseguir_multiple(matriz,VB,VNB,columna_pivote,nombre_archivo):
     fila_pivote = cociente_menor(matriz, columna_pivote, len(matriz[0]) - 1)
     pivote = matriz[fila_pivote][columna_pivote]
     matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1/ pivote)
@@ -113,7 +113,7 @@ def conseguir_multiple(matriz,VB,VNB,columna_pivote):
     saliente = VB[fila_pivote]
     entrante = VNB[columna_pivote]
     VB[fila_pivote] = VNB[columna_pivote]
-    escribir_tablas(matriz[:], VB[:], VNB[:], pivote, entrante, saliente, "Extra")
+    escribir_tablas(matriz[:], VB[:], VNB[:], pivote, entrante, saliente, "Extra",nombre_archivo)
 
     return (matriz,VB,VNB)
 
@@ -124,15 +124,15 @@ manipular los datos con el metodo Gauss de acuerdo al valor pivote
 E : Matriz con los valores, vector con las variables basicas y vector con las no basicas 
 S : Retorna los variables de entrada ya iteradas y con la solucion final (si existe)
 """
-def metodoSimplex(matriz,VB,VNB):
+def metodoSimplex(matriz,VB,VNB,nombre_archivo):
     ultima_columna = len(matriz[0]) - 1
     estado = 1
-    escribir_tablas(matriz,VB,VNB,'Ninguno','Ninguno','Ninguno',0)
+    escribir_tablas(matriz,VB,VNB,'Ninguno','Ninguno','Ninguno',0,nombre_archivo)
     while comprobar_max(matriz[0]):
         columna_pivote = encontrar_menor(matriz[0])
-        fila_pivote = cociente_menor(matriz, columna_pivote, ultima_columna)
+        fila_pivote = cociente_menor(matriz, columna_pivote, ultima_columna,nombre_archivo)
         if (fila_pivote == -1):
-            print("Funcion no acotada\n")
+            print("Funcion no acotada en " + nombre_archivo + "\n")
             return (0,0,0)
         pivote = matriz[fila_pivote][columna_pivote]
         matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1/pivote)
@@ -140,7 +140,7 @@ def metodoSimplex(matriz,VB,VNB):
         saliente = VB[fila_pivote]
         entrante = VNB[columna_pivote]
         VB[fila_pivote] = VNB[columna_pivote]
-        escribir_tablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado)
+        escribir_tablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado,nombre_archivo)
         estado += 1
     return (matriz, VB, VNB)
 
@@ -149,7 +149,7 @@ Funcion que escribe en el archivo olucion los valores de cada iteracion
 
 """
 
-def escribir_tablas(matriz,VB,VNB,pivote,entrante,saliente,estado):
+def escribir_tablas(matriz,VB,VNB,pivote,entrante,saliente,estado,nombre_archivo):
     texto = ''
     formatear_decimales(matriz)
     VNB = [["VB"] + VNB]
@@ -165,7 +165,7 @@ def escribir_tablas(matriz,VB,VNB,pivote,entrante,saliente,estado):
         for columna in range(len(matriz_imprimible[0])):
             texto += str(matriz_imprimible[fila][columna]) +'     |     \t'
         texto += '\n' + '-' * (tam * 17 + 4) + '\n'
-    f = open('_sol.txt','a')
+    f = open(nombre_archivo +'_sol.txt','a')
     f.write('\nEstado ' + str(estado) + '\n')
     f.write(texto)
     f.write('VB entrante: ' + str(entrante) + ', VB saliente: ' + str(saliente) + ' Numero Pivot: '+ str(pivote) + '\n')
@@ -183,15 +183,3 @@ def formatear_decimales(matriz):
 
 
 
-"""if __name__ == "__main__":
-    tam = len(sys.argv)
-    if tam < 3:
-        print("Error al correr simplex.py, intente de nuevo colocando un archivo correctamente")
-
-    else:
-        i = 2
-        while i < tam:
-            if ".txt" in sys.argv[i]:
-                sys.exit(leerArchivo(sys.argv[i]))
-            else:
-                print("El programa solo acepta .txt, intente ingresando otro archivo") """
