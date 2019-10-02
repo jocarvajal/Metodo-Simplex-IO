@@ -229,7 +229,7 @@ def escribir_respuesta_final(respuestas,nombre_archivo):
     desgloce = ''
     tam = len(respuestas)
 
-    print('\n Resultado Final ' + nombre_archivo + ': U = ' + str(respuestas[0]) + '\n')
+    print('\nResultado Final ' + nombre_archivo + ': U = ' + str(respuestas[0]) + '\n')
     i = 1
     while i < tam:
         if i == tam - 1:
@@ -237,7 +237,8 @@ def escribir_respuesta_final(respuestas,nombre_archivo):
         else:
             desgloce += str(respuestas[i]) + ', '
         i += 1
-    print('BF = (' + desgloce + ')')
+    print('BF = (' + desgloce + ')\n')
+
     return 0
 
 
@@ -250,8 +251,17 @@ def main(nombre_archivo):
         print(VB)
         print(VNB)"""
 
+        cumple_restriccion = True
+
         if metodo == 0:
-            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB, nombre_archivo.split(".")[0])
+            for variable in VNB:
+                if (variable[0] == 'R'):
+                    cumple_restriccion = False
+
+            if (cumple_restriccion):
+                (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB, nombre_archivo.split(".")[0])
+            else:
+                print("\nMetodo simplex solo puede tener restricciones de '<='\n")
         elif metodo == 1:
             (matriz, VB, VNB) = gran_m(matriz, VB, VNB, nombre_archivo.split(".")[0])
         elif metodo == 2:
@@ -260,7 +270,7 @@ def main(nombre_archivo):
         # dual(matriz, VB, VNB)
 
         # Esta condicion es para verificar si es no acotada
-        if (matriz != 0 and matriz != None):
+        if (matriz != 0 and matriz != None and cumple_restriccion):
             (columna_pivote, soluciones_multiples) = comprobar_multiples(matriz[0], VB, VNB,
                                                                          nombre_archivo.split(".")[0])
             if (soluciones_multiples):
@@ -283,6 +293,7 @@ if __name__ == "__main__":
         while i < tam:
             if ".txt" in sys.argv[i]:
                 main(sys.argv[i])
+                print("-" * 50)
             else:
                 print("El programa solo acepta .txt, intente ingresando otro archivo")
             i += 1

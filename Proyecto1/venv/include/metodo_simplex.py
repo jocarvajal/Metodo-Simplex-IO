@@ -33,9 +33,11 @@ S : None
 """
 def es_degenerada(cocientes,menor_cociente,nombre_archivo):
     if (cocientes.count(menor_cociente) > 1):
-        print("Presenta una solucion degenerada en " + nombre_archivo + "\n")
+        print("\nPresenta una solucion degenerada en " + nombre_archivo + "\n")
+        print("Coeficiente que se repite: " + str(menor_cociente) + "\n")
         f = open(nombre_archivo + '_sol.txt', 'a')
-        f.write('\n' + "Problema cuenta con solucion degenerada" + '\n')
+        f.write('\nProblema cuenta con solucion degenerada\n')
+        f.write("\nCoeficiente que se repite: " + str(menor_cociente) + "\n\n")
         f.close()
 
 """ 
@@ -100,13 +102,17 @@ def comprobar_multiples(vector, VB, VNB,nombre_archivo):
         if (VNB[posicion][0] == 'X' and VNB[posicion] not in VB):
             tiene_multiple = True
             columna = posicion
-            print("Presenta respuesta multiple en" + nombre_archivo + "\n")
+            print("\nPresenta respuesta multiple en " + nombre_archivo + "\n")
+            print("Variable no basica con 0: " + VNB[posicion])
+            f = open(nombre_archivo + '_sol.txt', 'a')
+            f.write("\nSolucion multiple, variable no basica con 0: " + VNB[posicion] + "\n")
+            f.close()
             break
 
     return (columna, tiene_multiple)
 
 def conseguir_multiple(matriz,VB,VNB,columna_pivote,nombre_archivo):
-    fila_pivote = cociente_menor(matriz, columna_pivote, len(matriz[0]) - 1)
+    fila_pivote = cociente_menor(matriz, columna_pivote, len(matriz[0]) - 1,nombre_archivo)
     pivote = matriz[fila_pivote][columna_pivote]
     matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1/ pivote)
     matriz = iterar_matriz(matriz, fila_pivote, columna_pivote)
@@ -132,7 +138,12 @@ def metodoSimplex(matriz,VB,VNB,nombre_archivo):
         columna_pivote = encontrar_menor(matriz[0])
         fila_pivote = cociente_menor(matriz, columna_pivote, ultima_columna,nombre_archivo)
         if (fila_pivote == -1):
-            print("Funcion no acotada en " + nombre_archivo + "\n")
+            print("\nFuncion no acotada en " + nombre_archivo + "\n")
+            print("Columna de " + VNB[columna_pivote] + " con solo 0's o negativos\n")
+            f = open(nombre_archivo + '_sol.txt', 'a')
+            f.write("\nFuncion no acotada\n")
+            f.write("\nColumna de " + VNB[columna_pivote] + " con solo 0's o negativos\n")
+            f.close()
             return (0,0,0)
         pivote = matriz[fila_pivote][columna_pivote]
         matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1/pivote)
@@ -166,9 +177,10 @@ def escribir_tablas(matriz,VB,VNB,pivote,entrante,saliente,estado,nombre_archivo
             texto += str(matriz_imprimible[fila][columna]) +'     |     \t'
         texto += '\n' + '-' * (tam * 17 + 4) + '\n'
     f = open(nombre_archivo +'_sol.txt','a')
+    if (str(entrante) != "Ninguno"):
+        f.write('VB entrante: ' + str(entrante) + ', VB saliente: ' + str(saliente) + ' Numero Pivot: ' + str(pivote) + '\n')
     f.write('\nEstado ' + str(estado) + '\n')
     f.write(texto)
-    f.write('VB entrante: ' + str(entrante) + ', VB saliente: ' + str(saliente) + ' Numero Pivot: '+ str(pivote) + '\n')
     f.close()
 
 """ 
