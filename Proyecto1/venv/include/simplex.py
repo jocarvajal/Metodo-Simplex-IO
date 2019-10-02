@@ -236,7 +236,7 @@ def escribir_respuesta_final(respuestas,nombre_archivo):
     desgloce = ''
     tam = len(respuestas)
 
-    print('\n Resultado Final ' + nombre_archivo + ': U = ' + str(respuestas[0]) + '\n')
+    print('\nResultado Final ' + nombre_archivo + ': U = ' + str(respuestas[0]) + '\n')
     i = 1
     while i < tam:
         if i == tam - 1:
@@ -244,7 +244,8 @@ def escribir_respuesta_final(respuestas,nombre_archivo):
         else:
             desgloce += str(respuestas[i]) + ', '
         i += 1
-    print('BF = (' + desgloce + ')')
+    print('BF = (' + desgloce + ')\n')
+
     return 0
 
 
@@ -263,15 +264,24 @@ def main(nombre_archivo):
         print(VB)
         print(VNB)"""
 
+        cumple_restriccion = True
+
         if metodo == 0:
-            (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB, nombre_archivo.split(".")[0])
+            for variable in VNB:
+                if (variable[0] == 'R'):
+                    cumple_restriccion = False
+
+            if (cumple_restriccion):
+                (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB, nombre_archivo.split(".")[0])
+            else:
+                print("\nMetodo simplex solo puede tener restricciones de '<='\n")
         elif metodo == 1:
             (matriz, VB, VNB) = gran_m(matriz, VB, VNB, nombre_archivo.split(".")[0])
         elif metodo == 2:
             (matriz, VB, VNB) = dos_fases(matriz, VB, VNB, nombre_archivo.split(".")[0])
 
         # Esta condicion es para verificar si es no acotada
-        if (matriz != 0 and matriz != None):
+        if (matriz != 0 and matriz != None and cumple_restriccion):
             (columna_pivote, soluciones_multiples) = comprobar_multiples(matriz[0], VB, VNB,
                                                                          nombre_archivo.split(".")[0])
             if (soluciones_multiples):
@@ -284,6 +294,7 @@ def main(nombre_archivo):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     
     parser = argparse.ArgumentParser(description = 'Corra el archivo simplex.py seguido de los archivos que tienen los problemas a resolver en formato txt')
     parser.add_argument("archivos", metavar="archivo.txt", help = "Uno o más archivos a ejecutar", nargs = '+')
@@ -296,3 +307,4 @@ if __name__ == "__main__":
         else:
             print("El programa solo acepta .txt, intente ingresando otro archivo")
     
+=======
