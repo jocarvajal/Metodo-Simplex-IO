@@ -27,44 +27,35 @@ def encontrar_menor(vector):
     return posicion
 
 """ 
-Funcion que localiza si hay dos cocientes iguales, haciendo mencion que es una funcion degenerada
-E : Dos cocientes flotantes
+Funcion que localiza si hay dos cocientes iguales, haciendo mencion que es una solucion degenerada
+E : lista de cocientes, el menor cociente
 S : None
 """
-def es_degenerada(cociente1,cociente2):
-    if cociente1 == cociente2:
-        print("Presenta una funcion degenerada\n")
-
-
-""" 
-Funcion que verifica si la funcion es no acotada
-E : Posicion de la fila pivote 
-S : Booleano que retorna False si la posicion tiene un valor dentro de la lista y True ssi su valor es -1 dando referencia
-     que no se pudo encontrar un valor pivote
-"""
-def comprobar_no_acotado(posicion):
-    es_no_acotada = False
-    if posicion == -1:
-        es_no_acotada = True
-    return es_no_acotada
-
+def es_degenerada(cocientes,menor_cociente):
+    if (cocientes.count(menor_cociente) > 1):
+        print("Presenta una solucion degenerada\n")
 
 """ 
-Funcion que busca el menor cociente para usarlo como fila pivote 
+Funcion que busca el menor cociente para usarlo como fila pivote
+retorna -1 si la funcion es no acotada
 E : Matriz con los valores a iterar,posicion de la columna pivote, posicion de la columna solucion
 S : Posicion de la fila pivote 
 """
 def cociente_menor(matriz, columna_pivote, ultima_columna):
     menor_cociente = 10000000
     posicion = -1
+    cocientes = []
+
     for fila in range(1, len(matriz)):
         if matriz[fila][columna_pivote] > 0:
             cociente = matriz[fila][ultima_columna] / matriz[fila][columna_pivote]
             if cociente < menor_cociente:
-                anterior_cociente = menor_cociente
                 menor_cociente = cociente
                 posicion = fila
-                es_degenerada(anterior_cociente,menor_cociente)
+            cocientes.append(cociente)
+
+    es_degenerada(cocientes,menor_cociente)
+
     return posicion
 
 """ 
@@ -98,34 +89,37 @@ S : Devuelve True si una de las vaiables artificiales presenta un valor de 0 al 
 """
 def comprobar_multiples(vector, VB, VNB):
     tiene_multiple = False
-    for basica in VB:
-        for valor in range(len(vector)):
-            if basica != VNB[valor] and vector[valor] == 0 and VNB[valor] != "SOL" :
-                tiene_multiple = True
-                print("Presenta respuesta multiple\n")
-                break
-    return tiene_multiple
+    columna = -1
 
-def conseguir_multiple(matriz,VB,VNB):
-    columna_pivote = 0
-    for basica in VB:
-        for valor in range(len(matriz[0])):
-            if basica != VNB[valor] and matriz[0][valor] == 0 and VNB[valor] != "SOL":
-                columna_pivote = valor
+    posiciones_ceros = [i for i,valor in enumerate(vector) if valor == 0]
+
+    for posicion in posiciones_ceros:
+        if (VNB[posicion][0] == 'X' and VNB[posicion] not in VB):
+            tiene_multiple = True
+            columna = posicion
+            print("Presenta respuesta multiple\n")
+            break
+
+    return (columna, tiene_multiple)
+
+def conseguir_multiple(matriz,VB,VNB,columna_pivote):
     fila_pivote = cociente_menor(matriz, columna_pivote, len(matriz[0]) - 1)
     pivote = matriz[fila_pivote][columna_pivote]
-    matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1 / pivote)
+    matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1/ pivote)
     matriz = iterar_matriz(matriz, fila_pivote, columna_pivote)
     saliente = VB[fila_pivote]
     entrante = VNB[columna_pivote]
     VB[fila_pivote] = VNB[columna_pivote]
     escribir_tablas(matriz[:], VB[:], VNB[:], pivote, entrante, saliente, "Extra")
 
+    return (matriz,VB,VNB)
+
 
 """ 
-Funcion que lleva el ciclo de busqueda del numero pivote y manipular los datos con el metodo Gauss de acuerdo a lvalor pivote 
+Funcion que lleva el ciclo de busqueda del numero pivote y 
+manipular los datos con el metodo Gauss de acuerdo al valor pivote 
 E : Matriz con los valores, vector con las variables basicas y vector con las no basicas 
-S : Retorna los vriables de entrada ya iteradas y con la solucion final 
+S : Retorna los variables de entrada ya iteradas y con la solucion final (si existe)
 """
 def metodoSimplex(matriz,VB,VNB):
     ultima_columna = len(matriz[0]) - 1
@@ -134,9 +128,9 @@ def metodoSimplex(matriz,VB,VNB):
     while comprobar_max(matriz[0]):
         columna_pivote = encontrar_menor(matriz[0])
         fila_pivote = cociente_menor(matriz, columna_pivote, ultima_columna)
-        if comprobar_no_acotado(fila_pivote):
+        if (fila_pivote == -1):
             print("Funcion no acotada\n")
-            return None
+            return (0,0,0)
         pivote = matriz[fila_pivote][columna_pivote]
         matriz[fila_pivote] = preparar_fila_pivote(matriz[fila_pivote], 1/pivote)
         matriz = iterar_matriz(matriz,fila_pivote,columna_pivote)
@@ -145,8 +139,6 @@ def metodoSimplex(matriz,VB,VNB):
         VB[fila_pivote] = VNB[columna_pivote]
         escribir_tablas(matriz[:],VB[:],VNB[:],pivote,entrante,saliente,estado)
         estado += 1
-    if comprobar_multiples(matriz[0], VB, VNB):
-        conseguir_multiple(matriz, VB, VNB)
     return (matriz, VB, VNB)
 
 """ 
@@ -184,7 +176,7 @@ E : Matrizz con todos los valores
 def formatear_decimales(matriz):
     for fila in range(len(matriz)):
         for columna in range(len(matriz[0])):
-            matriz[fila][columna] = round(matriz[fila][columna], 1)
+            matriz[fila][columna] = round(matriz[fila][columna], 3)
 
 
 
@@ -200,5 +192,3 @@ def formatear_decimales(matriz):
                 sys.exit(leerArchivo(sys.argv[i]))
             else:
                 print("El programa solo acepta .txt, intente ingresando otro archivo") """
-
-

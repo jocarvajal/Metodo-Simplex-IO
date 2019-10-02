@@ -60,7 +60,7 @@ def poner_ceros(matriz, campos):
     for i in range(len(campos)):
         multiplo = matriz[0][campos[i]]
         for columna in range(len(matriz[0])):
-            matriz[0][columna] += -multiplo*matriz[filas[i]][columna]
+            matriz[0][columna] = matriz[0][columna]+-multiplo*matriz[filas[i]][columna]
     return matriz
 
 def buscar_filas(matriz, campos):
@@ -79,14 +79,13 @@ def buscar_filas(matriz, campos):
 def dos_fases(matriz, VB, VNB):
     matriz_primera_fase = primera_fase(matriz[:], VB, VNB)
     (matriz_primera_fase, VB, VNB) = metodoSimplex(matriz_primera_fase, VB, VNB)
+    # Salio no acotada
+    if (matriz_primera_fase == 0):
+        return (0,0,0)
     f = open('_sol.txt', 'a')
     f.write('\n' + "Segunda Fase" + '\n')
     f.close()
     (matriz_segunda_fase, nuevo_VNB) = segunda_fase(matriz[:], matriz_primera_fase, VB, VNB[:])
     (matriz_segunda_fase, VB, nuevo_VNB) = metodoSimplex(matriz_segunda_fase, VB, nuevo_VNB)
-    return (matriz_segunda_fase, VB, nuevo_VNB)
 
-#print(dos_fases([[0.4, 0.5, 0, 0, 0, 0, 0],
-#                 [0.3, 0.1, 1, 0, 0, 0, 2.7],
-#                 [0.5, 0.5, 0, 1, 0, 0, 6],
-#                 [0.6, 0.4, 0, 0, -1, 1, 6]], ["U", "S1", "R1", "R2"], ["X1", "X2", "S1", "R1", "S2", "R2", "SOL"]))
+    return (matriz_segunda_fase, VB, nuevo_VNB)

@@ -1,4 +1,5 @@
-from metodo_simplex import metodoSimplex
+from metodo_simplex import metodoSimplex, comprobar_multiples, conseguir_multiple
+from metodo_gran_m import gran_m
 from dosfases import  dos_fases
 import os.path
 from os import remove
@@ -79,7 +80,7 @@ def crear_matriz(descripcion, variables_agregar):
     columnas = variables_agregar + variables_decision + 1
     matriz = []
     for i in range(filas):
-        matriz.append([0] * columnas)
+        matriz.append([0.0] * columnas)
 
     return matriz
 
@@ -104,11 +105,11 @@ def agregar_restricciones(archivo, matriz, descripcion):
         for dato in range(variables_decision):
             matriz[fila][dato] = float(datos_restriccion[dato])
         if datos_restriccion[variables_decision] == "<=" or datos_restriccion[variables_decision] == "=":
-            matriz[fila][variables_decision + variables_agregadas] = 1
+            matriz[fila][variables_decision + variables_agregadas] = 1.0
             variables_agregadas += 1
         else:
-            matriz[fila][variables_decision + variables_agregadas] = -1
-            matriz[fila][variables_decision + variables_agregadas + 1] = 1
+            matriz[fila][variables_decision + variables_agregadas] = -1.0
+            matriz[fila][variables_decision + variables_agregadas + 1] = 1.0
             variables_agregadas += 2
         matriz[fila][columna_resultados] = float(datos_restriccion[variables_decision + 1])
         fila += 1
@@ -237,15 +238,22 @@ def main(nombre_archivo):
 
         if metodo == 0:
             (matriz, VB, VNB) = metodoSimplex(matriz, VB, VNB)
-            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
-        #elif metodo == 1:
-            #granM(matriz, VB, VNB)
+        elif metodo == 1:
+            (matriz, VB, VNB) = gran_m(matriz, VB, VNB)
         elif metodo == 2:
             (matriz, VB, VNB) = dos_fases(matriz, VB, VNB)
-            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
         #elif metodo == 3:
             #dual(matriz, VB, VNB)
+
+        # Esta condicion es para verificar si es no acotada
+        if (matriz != 0):
+            (columna_pivote, soluciones_multiples) = comprobar_multiples(matriz[0], VB, VNB)
+            if (soluciones_multiples):
+                (matriz, VB, VNB) = conseguir_multiple(matriz, VB, VNB, columna_pivote)
+
+            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB))
+
     else:
         print("Archivo incorrecto")
 
-main("problema2.txt")
+#main("problema1.txt")
