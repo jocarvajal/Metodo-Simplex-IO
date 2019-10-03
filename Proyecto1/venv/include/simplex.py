@@ -272,9 +272,10 @@ def obtener_resultado(matriz, VB, VNB):
 
 
 '''
-Función 
-E: 
-S: .
+Función que se encarga de ubicar las columnas donde se encuentran variables artificales R, con el objetivo de no
+tomarlas en cuenta en el calculo de factibilidad
+E: un arreglo de las variables no basicas.
+S: un arreglo de booleanos indicando las posiciones donde hay variables artificiales en la funcion objetivo original
 '''
 def posiciones_r(VNB):
     posiciones = [False] * len(VNB)
@@ -285,9 +286,12 @@ def posiciones_r(VNB):
 
 
 '''
-Función principal que ejecuta el programa.
-E: El nombre de un archivo.
-S: Ninguna.
+Función que se encarga de evaluar el vector de resultados finales en las restricciones planteadas en el problema 
+original. Para comprobar la factibilidad se multiplica vectorialmente cada linea correspondiente a restriccion en la 
+matriz original por el vector de resultados. 
+E: el vector de resultados, la matriz original, los signos de restriccion de la matriz original, las posiciones de las
+variables artificiales en la matriz original.
+S: un valor booleano indicando la factibilidad.
 '''
 def verificar_factibilidad(resultados, matriz_original, signos_restriccion, posiciones):
     factible = True
