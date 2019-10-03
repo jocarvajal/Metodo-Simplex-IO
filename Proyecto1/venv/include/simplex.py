@@ -270,6 +270,12 @@ def obtener_resultado(matriz, VB, VNB):
 
     return resultados
 
+
+'''
+Función 
+E: 
+S: .
+'''
 def posiciones_r(VNB):
     posiciones = [False] * len(VNB)
     for i in range(len(VNB)):
@@ -277,6 +283,12 @@ def posiciones_r(VNB):
             posiciones[i] = True
     return posiciones
 
+
+'''
+Función principal que ejecuta el programa.
+E: El nombre de un archivo.
+S: Ninguna.
+'''
 def verificar_factibilidad(resultados, matriz_original, signos_restriccion, posiciones):
     factible = True
     for i in range(1, len(matriz_original)):
@@ -335,6 +347,7 @@ def main(nombre_archivo):
     if validar_archivo(nombre_archivo):
         metodo = averiguar_metodo(nombre_archivo)
         if metodo == 3:
+            print("El problema dual será resuelto mediante el método de las 2 fases")
             if os.path.isfile(nombre_archivo.split(".")[0] + "_dual_sol.txt"):
                 remove(nombre_archivo.split(".")[0] + '_dual_sol.txt')
             nombre_archivo = dual(nombre_archivo)
