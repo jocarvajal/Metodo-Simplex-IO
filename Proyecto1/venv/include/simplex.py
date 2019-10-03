@@ -7,7 +7,11 @@ import argparse
 #import math
 from os import remove
 
-
+'''
+Función que valida el archivo entrante.
+E; El nombre del archivo.
+S; True si es valido, False de lo contrario.
+'''
 def validar_archivo(nombre):
     valido = True
     cant_variables = -1
@@ -62,7 +66,11 @@ def validar_archivo(nombre):
     archivo.close()
     return valido
 
-
+'''
+Función que indica la cantidad total de variables de holgura y artificiales que se agregarán.
+E: EL nombre del archivo que se esta utilizando.
+S: EL número de variables a agregar.
+'''
 def variables_restricciones(nombre_archivo):
     archivo = open(nombre_archivo, "r")
     cantidad_variables = 0
@@ -78,7 +86,11 @@ def variables_restricciones(nombre_archivo):
 
     return cantidad_variables
 
-
+'''
+Función que crea un matriz vacia con el tamaño necesario para acomodar el problema.
+E: La primera fila del archivo, y la cantidad de varibles de holgura y artificiales involucradas.
+S: Un matriz vacia con el tamaño necesario.
+'''
 def crear_matriz(descripcion, variables_agregar):
     variables_decision = int(descripcion[2])
     cant_restricciones = int(descripcion[3])
@@ -90,7 +102,12 @@ def crear_matriz(descripcion, variables_agregar):
 
     return matriz
 
-
+'''
+Función que agrega la función objetivo a la primera fila de la matriz inicial, esta función hace que todo lo
+entrante sea max, si entra un minimo de una vez lo convierte.
+E: La matriz inicial vacia, la primera fila del archivo, y los datos constantes de la función objetivo.
+S: La matriz inicial solo con la primera fila.
+'''
 def agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo):
     tipo_optimizacion = descripcion[1]
     variables_decision = int(descripcion[2])
@@ -102,7 +119,11 @@ def agregar_funcion_objetivo(matriz, descripcion, funcion_objetivo):
 
     return matriz
 
-
+'''
+Función auxiliar que agrega las filas de las restricciones a la metriz inicial.
+E; Nombre del archivo, la matriz inicial incompleta, la primera fila del archivo.
+S: la matriz final completa.
+'''
 def agregar_restricciones(archivo, matriz, descripcion):
     variables_decision = int(descripcion[2])
     fila = 1
@@ -124,7 +145,11 @@ def agregar_restricciones(archivo, matriz, descripcion):
 
     return matriz
 
-
+'''
+Función principal en el proceso de montar la matriz inicial.
+E: El nombre del archivo.
+S: La matriz inicial y el método con el que se procesará.
+'''
 def armar_matriz(nombre_archivo):
     variables_agregar = variables_restricciones(nombre_archivo)
     archivo = open(nombre_archivo, "r")
@@ -139,6 +164,10 @@ def armar_matriz(nombre_archivo):
 
     return (matriz, metodo)
 
+'''
+Función que lee el archivo y indica que metodo se va a usar.
+E: EL nombre del archivo que se esta utilizando.
+S: EL número del método a utilizar.'''
 def averiguar_metodo(nombre_archivo):
     archivo = open(nombre_archivo, "r")
     descripcion = archivo.readline()[:-1].split(',')
@@ -146,6 +175,11 @@ def averiguar_metodo(nombre_archivo):
     archivo.close()
     return metodo
 
+'''
+Función que lee el archivo para saber las variables básicas iniciales.
+E: El nombre del archivo que se esta utilizando.
+S: Un vector con las variables básicas.
+'''
 def basicas_iniciales(nombre_archivo):
     VB = ["U"]
     variables_holgura = 0
@@ -166,10 +200,14 @@ def basicas_iniciales(nombre_archivo):
             variables_holgura += 1
             VB.append("R" + str(variables_artificiales))
         archivo.close()
-    #print(VB)
     return VB
 
-
+'''
+Función que lee el archivo y monta dos vectores: uno con todos los tipos de variables presentes 
+y otro con los tipos de restricciones presentes.
+E: EL nombre del archivo que se esta utilizando.
+S: Dos vectores: todos los tipos de variables presentes y tipos de restriccioness.
+'''
 def no_basicas(nombre_archivo):
     VNB = []
     signos_restriccion = []
@@ -198,17 +236,12 @@ def no_basicas(nombre_archivo):
     archivo.close()
     return (VNB, signos_restriccion)
 
-
-'''Esta funcion leer un archivo valido y retorna una matriz con:
-    la primera fila tiene la funcion objetivo ya igualada a 0 y en max independientemente
-    si le entro min o max. 
-    Y el resto de fila son las restricciones con las variables de holgura(S) y artificiales(R)
-    Agregadas.
-    En caso de GranM o dos fases hay que agregar las Mr a la funcion objetivo.
-    Tambien retorna el metodo que se va a utilizar, las variables basicas iniciales y todas las variables
-    del problema'''
-
-
+'''
+Funcion principal para leer el archivo.
+E: El nombre del archivo a leer.
+S: La matriz montada del problema en max(de ser minimo se convertira en la lectura del archivo), el número del método
+    a ejecutar, las variables básicas, todas las variables(cotando las de holgura y artificiales), y los tipos de 
+    restricciones los que el programa cuenta'''
 def leer_archivo(nombre):
     (matriz, metodo) = armar_matriz(nombre)
     VB = basicas_iniciales(nombre)
@@ -216,7 +249,11 @@ def leer_archivo(nombre):
 
     return (matriz, metodo, VB, VNB, signos_restriccion)
 
-
+'''
+Funcion que acomoda el BF final del problema.
+E: la matriz resultante, las variables básicas finales, y todas las variables involucradas en el problema.
+S: Un vector con el resultado acomodado de U y las variables básicas en orden.
+'''
 def obtener_resultado(matriz, VB, VNB):
     resultados = [0] * (len(VNB))
     tam = len(matriz)
@@ -233,14 +270,12 @@ def obtener_resultado(matriz, VB, VNB):
 
     return resultados
 
-
 def posiciones_r(VNB):
     posiciones = [False] * len(VNB)
     for i in range(len(VNB)):
         if VNB[i][0] == 'R':
             posiciones[i] = True
     return posiciones
-
 
 def verificar_factibilidad(resultados, matriz_original, signos_restriccion, posiciones):
     factible = True
@@ -264,6 +299,11 @@ def verificar_factibilidad(resultados, matriz_original, signos_restriccion, posi
 
     return factible
 
+'''
+Función que escribe la respuesta del problema ejecutado en la terminal
+E: Las soluciones de las incognitas encontradas, el nombre del archivo, y si es factible
+S: Ninguna.
+'''
 def escribir_respuesta_final(respuestas, nombre_archivo, factibilidad):
     desgloce = ''
     tam = len(respuestas)
@@ -283,9 +323,11 @@ def escribir_respuesta_final(respuestas, nombre_archivo, factibilidad):
     else:
         print('\nLa respuesta óptima encontrada no es factible.\n')
 
-    return 0
-
-
+'''
+Función principal que ejecuta el programa.
+E: El nombre de un archivo.
+S: Ninguna.
+'''
 def main(nombre_archivo):
     
     if os.path.isfile(nombre_archivo.split(".")[0] + "_sol.txt"):
@@ -332,7 +374,10 @@ def main(nombre_archivo):
     else:
         print("Archivo " + nombre_archivo + " incorrecto")
 
-
+'''
+Código que inicia la ejecución del programa.
+Las entradas son dadas por consolas.
+'''
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Corra el archivo simplex.py seguido de los archivos que tienen los problemas a resolver en formato txt')
     parser.add_argument("archivos", metavar="archivo.txt", help = "Uno o más archivos a ejecutar", nargs = '+')
