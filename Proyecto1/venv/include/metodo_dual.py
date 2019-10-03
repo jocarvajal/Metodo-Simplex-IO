@@ -1,3 +1,7 @@
+import os
+from os import remove
+
+
 def crear_matriz(descripcion):
     variables_decision = int(descripcion[2])
     cant_restricciones = int(descripcion[3])
@@ -96,10 +100,10 @@ def escribir_archivo_dual(nombre_archivo, matriz_dual, tipo):
         texto += rest + ',' + str(matriz_dual[fila][-1]) + '\r'
 
     nombre_archivo_dual = nombre_archivo + '_dual.txt'
-    f = open(nombre_archivo_dual,'r+')
-    f.seek(0)
+    if os.path.isfile(nombre_archivo_dual):
+        remove(nombre_archivo_dual)
+    f = open(nombre_archivo_dual,'w')
     f.write(texto)
-    f.truncate()
     f.close()
     return nombre_archivo_dual
 

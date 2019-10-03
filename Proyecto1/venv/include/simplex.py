@@ -256,13 +256,11 @@ def main(nombre_archivo):
     if validar_archivo(nombre_archivo):
         metodo = averiguar_metodo(nombre_archivo)
         if metodo == 3:
+            if os.path.isfile(nombre_archivo.split(".")[0] + "_dual_sol.txt"):
+                remove(nombre_archivo.split(".")[0] + '_dual_sol.txt')
             nombre_archivo = dual(nombre_archivo)
-            #(matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo_dual)
 
         (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
-        """print(matriz)
-        print(VB)
-        print(VNB)"""
 
         cumple_restriccion = True
 
@@ -294,8 +292,6 @@ def main(nombre_archivo):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    
     parser = argparse.ArgumentParser(description = 'Corra el archivo simplex.py seguido de los archivos que tienen los problemas a resolver en formato txt')
     parser.add_argument("archivos", metavar="archivo.txt", help = "Uno o más archivos a ejecutar", nargs = '+')
     args = parser.parse_args()
@@ -304,7 +300,6 @@ if __name__ == "__main__":
     for archivo in args.archivos:
         if ".txt" in archivo:
             main(archivo)
+            print("-" * 50)
         else:
             print("El programa solo acepta .txt, intente ingresando otro archivo")
-    
-=======
