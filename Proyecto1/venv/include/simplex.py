@@ -4,6 +4,7 @@ from dosfases import dos_fases
 from metodo_dual import dual
 import os.path
 import argparse
+#import math
 from os import remove
 
 
@@ -165,12 +166,13 @@ def basicas_iniciales(nombre_archivo):
             variables_holgura += 1
             VB.append("R" + str(variables_artificiales))
         archivo.close()
-
+    #print(VB)
     return VB
 
 
 def no_basicas(nombre_archivo):
     VNB = []
+    signos_restriccion = []
     variables_holgura = 0
     variables_artificiales = 0
     archivo = open(nombre_archivo, "r")
@@ -180,6 +182,7 @@ def no_basicas(nombre_archivo):
         VNB.append("X" + str(i))
     for restriccion in archivo.readlines():
         tipo_restriccion = restriccion.split(",")[variables_decision]
+        signos_restriccion.append(tipo_restriccion)
         if tipo_restriccion == "<=":
             variables_holgura += 1
             VNB.append("S" + str(variables_holgura))
@@ -193,8 +196,7 @@ def no_basicas(nombre_archivo):
             VNB.append("R" + str(variables_artificiales))
     VNB.append("SOL")
     archivo.close()
-
-    return VNB
+    return (VNB, signos_restriccion)
 
 
 '''Esta funcion leer un archivo valido y retorna una matriz con:
@@ -210,13 +212,13 @@ def no_basicas(nombre_archivo):
 def leer_archivo(nombre):
     (matriz, metodo) = armar_matriz(nombre)
     VB = basicas_iniciales(nombre)
-    VNB = no_basicas(nombre)
+    (VNB, signos_restriccion) = no_basicas(nombre)
 
-    return (matriz, metodo, VB, VNB)
+    return (matriz, metodo, VB, VNB, signos_restriccion)
 
 
 def obtener_resultado(matriz, VB, VNB):
-    resultados = [0] * (len(VNB) + 1)
+    resultados = [0] * (len(VNB))
     tam = len(matriz)
     columna_resultado = len(matriz[0]) - 1
     for valor in range(tam):
@@ -232,7 +234,37 @@ def obtener_resultado(matriz, VB, VNB):
     return resultados
 
 
-def escribir_respuesta_final(respuestas,nombre_archivo):
+def posiciones_r(VNB):
+    posiciones = [False] * len(VNB)
+    for i in range(len(VNB)):
+        if VNB[i][0] == 'R':
+            posiciones[i] = True
+    return posiciones
+
+
+def verificar_factibilidad(resultados, matriz_original, signos_restriccion, posiciones):
+    factible = True
+    for i in range(1, len(matriz_original)):
+        suma = 0
+        k = 0
+        for j in range(len(resultados)-1):
+            if not posiciones[j]:
+                suma += resultados[k+1] * matriz_original[i][j]
+                k += 1
+        suma = round(suma, 1)
+        if signos_restriccion[i-1] == "<=":
+            if suma > matriz_original[i][-1]:
+                factible = False
+        elif signos_restriccion[i-1] == "=":
+            if suma != matriz_original[i][-1]:
+                factible = False
+        else:
+            if suma < matriz_original[i][-1]:
+                factible = False
+
+    return factible
+
+def escribir_respuesta_final(respuestas, nombre_archivo, factibilidad):
     desgloce = ''
     tam = len(respuestas)
 
@@ -245,6 +277,11 @@ def escribir_respuesta_final(respuestas,nombre_archivo):
             desgloce += str(respuestas[i]) + ', '
         i += 1
     print('BF = (' + desgloce + ')\n')
+
+    if factibilidad:
+        print('\nLa respuesta óptima encontrada es factible.\n')
+    else:
+        print('\nLa respuesta óptima encontrada no es factible.\n')
 
     return 0
 
@@ -260,7 +297,9 @@ def main(nombre_archivo):
                 remove(nombre_archivo.split(".")[0] + '_dual_sol.txt')
             nombre_archivo = dual(nombre_archivo)
 
-        (matriz, metodo, VB, VNB) = leer_archivo(nombre_archivo)
+        (matriz, metodo, VB, VNB, signos_restriccion) = leer_archivo(nombre_archivo)
+        matriz_original = [fila[:] for fila in matriz]
+        VNB_original = [v for v in VNB]
 
         cumple_restriccion = True
 
@@ -285,7 +324,10 @@ def main(nombre_archivo):
             if (soluciones_multiples):
                 (matriz, VB, VNB) = conseguir_multiple(matriz, VB, VNB, columna_pivote, nombre_archivo.split(".")[0])
 
-            escribir_respuesta_final(obtener_resultado(matriz, VB, VNB), nombre_archivo.split(".")[0])
+            resultados = obtener_resultado(matriz, VB, VNB)
+            posiciones = posiciones_r(VNB_original)
+            factibilidad = verificar_factibilidad(resultados, matriz_original, signos_restriccion, posiciones)
+            escribir_respuesta_final(resultados, nombre_archivo.split(".")[0], factibilidad)
 
     else:
         print("Archivo " + nombre_archivo + " incorrecto")
